@@ -76,26 +76,46 @@ class History:
     def is_win(self):
         # check if the board position is a win for either players
         # Feel free to implement this in anyway if needed
-        pass
+        b=self.board
+        lines=[(0,1,2),(3,4,5),(6,7,8),(0,3,6),(1,4,7),(2,5,8),(0,4,8),(2,4,6)]
+        for i,j,k in lines:
+            if b[i] == b[j] == b[k] and b[i] in ('x','o'):
+                return True
+        return False
 
     def is_draw(self):
         # check if the board position is a draw
         # Feel free to implement this in anyway if needed
-        pass
+        count=0
+        a=False
+        for i in self.board:
+            if i=='0':
+                count+=1
+        if count == 0:
+            a=True
+        return a and not self.is_win()
 
     def get_valid_actions(self):
         # get the empty squares from the board
         # Feel free to implement this in anyway if needed
-        pass
+        return [i for i,cell in enumerate(self.board) if cell == '0']
 
     def is_terminal_history(self):
         # check if the history is a terminal history
         # Feel free to implement this in anyway if needed
-        pass
+        return self.is_win() or self.is_draw()
 
     def get_utility_given_terminal_history(self):
         # Feel free to implement this in anyway if needed
-        pass
+        if self.is_draw():
+            return 0
+        elif self.is_win():
+            # The winner is the player who made the last move
+            last_player = 'o' if len(self.history) % 2 == 1 else 'x'
+            if last_player == 'x':
+                return 1
+            else:
+                return -1
 
     def update_history(self, action):
         # In case you need to create a deepcopy and update the history obj to get the next history object.
@@ -103,27 +123,53 @@ class History:
         pass
 
 
-def backward_induction(history_obj):
+def backward_induction(h):
     """
-    :param history_obj: Histroy class object
-    :return: best achievable utility (float) for th current history_obj
+    :param h: History class object
+    :return: best achievable utility (float) for the current history_obj
     """
     global strategy_dict_x, strategy_dict_o
-    # TODO implement
-    # (1) Implement backward induction for tictactoe
-    # (2) Update the global variables strategy_dict_x or strategy_dict_o which are a mapping from histories to
-    # probability distribution over actions.
-    # (2a)These are dictionary with keys as string representation of the history list e.g. if the history list of the
-    # history_obj is [0, 4, 2, 5], then the key is "0425". Each value is in turn a dictionary with keys as actions 0-8
-    # (str "0", "1", ..., "8") and each value of this dictionary is a float (representing the probability of
-    # choosing that action). Example: {”0452”: {”0”: 0, ”1”: 0, ”2”: 0, ”3”: 0, ”4”: 0, ”5”: 0, ”6”: 1, ”7”: 0, ”8”:
-    # 0}}
-    # (2b) Note, the strategy for each history in strategy_dict_x and strategy_dict_o is probability distribution over
-    # actions. But since tictactoe is a PIEFG, there always exists an optimal deterministic strategy (SPNE). So your
-    # policy will be something like this {"0": 1, "1": 0, "2": 0, "3": 0, "4": 0, "5": 0, "6": 0, "7": 0, "8": 0} where
-    # "0" was the one of the best actions for the current player/history.
-    return -2
-    # TODO implement
+    
+    if h.is_terminal_history():
+        return h.get_utility_given_terminal_history()
+    
+    key = ''.join(str(i) for i in h.history)
+    
+    if h.player == 'x':
+        best_utility = -2
+        best_action = None
+        action_dict = {"0": 0, "1": 0, "2": 0, "3": 0, "4": 0, "5": 0, "6": 0, "7": 0, "8": 0}
+        
+        for action in h.get_valid_actions():
+            # Create new history for next state
+            new_history = History(h.history + [action])
+            utility = backward_induction(new_history)
+            
+            if utility > best_utility:
+                best_utility = utility
+                best_action = action
+        
+        action_dict[str(best_action)] = 1
+        strategy_dict_x[key] = action_dict
+        return best_utility
+        
+    elif h.player == 'o':
+        best_utility = 2
+        best_action = None
+        action_dict = {"0": 0, "1": 0, "2": 0, "3": 0, "4": 0, "5": 0, "6": 0, "7": 0, "8": 0}
+        
+        for action in h.get_valid_actions():
+            # Create new history for next state
+            new_history = History(h.history + [action])
+            utility = backward_induction(new_history)
+            
+            if utility < best_utility:
+                best_utility = utility
+                best_action = action
+        
+        action_dict[str(best_action)] = 1
+        strategy_dict_o[key] = action_dict
+        return best_utility
 
 
 def solve_tictactoe():
