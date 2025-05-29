@@ -108,19 +108,15 @@ class History:
     def get_utility_given_terminal_history(self):
         # Feel free to implement this in anyway if needed
         if self.is_draw():
-            return 0
+            return 0.0
         elif self.is_win():
             # The winner is the player who made the last move
-            last_player = 'o' if len(self.history) % 2 == 1 else 'x'
-            if last_player == 'x':
-                return 1
-            else:
-                return -1
+            return 1.0 if (len(self.history) % 2 == 1) else -1.0
 
     def update_history(self, action):
         # In case you need to create a deepcopy and update the history obj to get the next history object.
         # Feel free to implement this in anyway if needed
-        pass
+        return History(self.history + [action])
 
 
 def backward_induction(h):
@@ -138,7 +134,7 @@ def backward_induction(h):
     if h.player == 'x':
         best_utility = -2
         best_action = None
-        action_dict = {"0": 0, "1": 0, "2": 0, "3": 0, "4": 0, "5": 0, "6": 0, "7": 0, "8": 0}
+        action_dict = {"0": 0.0, "1": 0.0, "2": 0.0, "3": 0.0, "4": 0.0, "5": 0.0, "6": 0.0, "7": 0.0, "8": 0.0}
         
         for action in h.get_valid_actions():
             # Create new history for next state
@@ -149,14 +145,14 @@ def backward_induction(h):
                 best_utility = utility
                 best_action = action
         
-        action_dict[str(best_action)] = 1
+        action_dict[str(best_action)] = 1.0
         strategy_dict_x[key] = action_dict
         return best_utility
         
     elif h.player == 'o':
         best_utility = 2
         best_action = None
-        action_dict = {"0": 0, "1": 0, "2": 0, "3": 0, "4": 0, "5": 0, "6": 0, "7": 0, "8": 0}
+        action_dict = {"0": 0.0, "1": 0.0, "2": 0.0, "3": 0.0, "4": 0.0, "5": 0.0, "6": 0.0, "7": 0.0, "8": 0.0}
         
         for action in h.get_valid_actions():
             # Create new history for next state
@@ -167,7 +163,7 @@ def backward_induction(h):
                 best_utility = utility
                 best_action = action
         
-        action_dict[str(best_action)] = 1
+        action_dict[str(best_action)] = 1.0
         strategy_dict_o[key] = action_dict
         return best_utility
 
